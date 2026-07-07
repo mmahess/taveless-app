@@ -22,6 +22,7 @@ class _CrowdMapScreenState extends State<CrowdMapScreen> {
   // Selected destination from the map — stores the full Destination object
   Destination? _selectedDestination;
   bool _showLabels = false;
+  bool _hasInitialSelected = false;
 
   late Future<List<Destination>> _destinationsFuture;
 
@@ -71,6 +72,13 @@ class _CrowdMapScreenState extends State<CrowdMapScreen> {
                 initialZoom: 9.8,
                 minZoom: 8.5,
                 maxZoom: 18.0,
+                onTap: (tapPosition, point) {
+                  if (_selectedDestination != null) {
+                    setState(() {
+                      _selectedDestination = null;
+                    });
+                  }
+                },
                 onPositionChanged: (camera, hasGesture) {
                   // Only rebuild when crossing the label visibility threshold
                   final shouldShowLabels = (camera.zoom ?? 9.8) >= 11.5;
@@ -102,11 +110,12 @@ class _CrowdMapScreenState extends State<CrowdMapScreen> {
                     final list = snapshot.data!;
 
                     // Auto-select the first destination if none is selected yet
-                    if (_selectedDestination == null && list.isNotEmpty) {
+                    if (!_hasInitialSelected && _selectedDestination == null && list.isNotEmpty) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (mounted && _selectedDestination == null) {
                           setState(() {
                             _selectedDestination = list.first;
+                            _hasInitialSelected = true;
                           });
                         }
                       });

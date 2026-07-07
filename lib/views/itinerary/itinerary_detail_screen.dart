@@ -1063,61 +1063,62 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
                       );
                     },
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      _showAddActivityBottomSheet(
-                        context,
-                        itinerary,
-                        selectedDay,
-                        itineraryCtrl,
-                      );
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 8, bottom: 24),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 20,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0F5FF),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFF0560E8).withOpacity(0.3),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFE8F0FE),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.add_location_alt_rounded,
-                              color: Color(0xFF0560E8),
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            "Add Destination Spot",
-                            style: GoogleFonts.outfit(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0560E8),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        color: const Color(0xFFF6F8FD),
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 12,
+          bottom: 12 + MediaQuery.of(context).padding.bottom,
+        ),
+        child: GestureDetector(
+          onTap: () {
+            _showAddActivityBottomSheet(
+              context,
+              itinerary,
+              selectedDay,
+              itineraryCtrl,
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0560E8),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0560E8).withOpacity(0.25),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.add_location_alt_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  "Add Destination Spot",
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
