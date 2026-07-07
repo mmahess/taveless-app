@@ -21,8 +21,6 @@ class SpotDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primaryBlue = const Color(0xFF0560E8);
-
     Color crowdColor;
     if (crowdLevel == "Small") {
       crowdColor = const Color(0xFF22C55E);
@@ -189,37 +187,7 @@ class SpotDetailScreen extends StatelessWidget {
                             height: 1.6,
                           ),
                         ),
-                        const SizedBox(height: 36),
-
-                        // Action Button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 54,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Routing to $name via Maps..."),
-                                  duration: const Duration(seconds: 1),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryBlue,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: Text(
-                              "Get Directions",
-                              style: GoogleFonts.outfit(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),

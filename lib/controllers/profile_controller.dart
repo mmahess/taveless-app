@@ -23,10 +23,10 @@ class ProfileController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> capturePhoto() async {
+  Future<void> selectProfileImage(ImageSource source) async {
     try {
       final XFile? photo = await _picker.pickImage(
-        source: ImageSource.camera,
+        source: source,
         imageQuality: 85,
         maxWidth: 600,
       );
@@ -49,7 +49,7 @@ class ProfileController extends ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint("Error capturing photo: $e");
+      debugPrint("Error selecting profile image: $e");
     }
   }
 }

@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/itinerary_controller.dart';
 import '../../models/itinerary.dart';
-import 'ai_itinerary_screen.dart';
+import 'itinerary_detail_screen.dart';
 
 class CreateItineraryScreen extends StatefulWidget {
   const CreateItineraryScreen({super.key});
@@ -247,7 +247,7 @@ class _CreateItineraryScreenState extends State<CreateItineraryScreen> {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_destinationCtrl.text.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -325,14 +325,38 @@ class _CreateItineraryScreenState extends State<CreateItineraryScreen> {
                           days: manualDays,
                         );
 
-                        itineraryCtrl.generatedItinerary = manualItinerary;
-
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const AIItineraryScreen(),
+                        // Show loading indicator dialog
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => const Center(
+                            child: CircularProgressIndicator(),
                           ),
                         );
+
+                        try {
+                          await itineraryCtrl.savePlan(manualItinerary);
+                          if (!context.mounted) return;
+                          Navigator.pop(context); // Dismiss loading dialog
+
+                          itineraryCtrl.generatedItinerary = manualItinerary;
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ItineraryDetailScreen(),
+                            ),
+                          );
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          Navigator.pop(context); // Dismiss loading dialog
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Failed to save plan: $e"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryBlue,

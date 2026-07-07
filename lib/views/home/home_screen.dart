@@ -8,7 +8,7 @@ import '../../controllers/profile_controller.dart';
 import '../components/app_logo.dart';
 import '../components/shimmer_loading.dart';
 import '../../controllers/itinerary_controller.dart';
-import '../itinerary/ai_itinerary_screen.dart';
+import '../itinerary/itinerary_detail_screen.dart';
 import 'package:latlong2/latlong.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -293,7 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const AIItineraryScreen(),
+                                builder: (context) => const ItineraryDetailScreen(),
                               ),
                             );
                           },

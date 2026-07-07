@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import '../../controllers/profile_controller.dart';
 import '../../controllers/itinerary_controller.dart';
-import '../itinerary/ai_itinerary_screen.dart';
+import '../itinerary/itinerary_detail_screen.dart';
 import '../components/app_logo.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -22,6 +23,100 @@ class _ProfileScreenState extends State<ProfileScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ItineraryController>(context, listen: false).loadSavedPlans();
     });
+  }
+
+  void _showEditNameDialog(BuildContext context, ProfileController profileCtrl) {
+    final TextEditingController nameEditCtrl = TextEditingController(text: profileCtrl.name);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            "Edit Name",
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          ),
+          content: TextField(
+            controller: nameEditCtrl,
+            decoration: InputDecoration(
+              hintText: "Enter your name",
+              hintStyle: GoogleFonts.outfit(color: Colors.grey),
+            ),
+            style: GoogleFonts.outfit(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "Cancel",
+                style: GoogleFonts.outfit(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (nameEditCtrl.text.trim().isNotEmpty) {
+                  profileCtrl.updateName(nameEditCtrl.text.trim());
+                }
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0560E8),
+              ),
+              child: Text(
+                "Save",
+                style: GoogleFonts.outfit(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showImageSourceBottomSheet(BuildContext context, ProfileController profileCtrl) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Upload Profile Picture",
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1E293B),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_rounded, color: Color(0xFF0560E8)),
+                title: Text("Take Photo (Camera)", style: GoogleFonts.outfit()),
+                onTap: () {
+                  Navigator.pop(context);
+                  profileCtrl.selectProfileImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_rounded, color: Color(0xFF0560E8)),
+                title: Text("Choose from Gallery (Storage)", style: GoogleFonts.outfit()),
+                onTap: () {
+                  Navigator.pop(context);
+                  profileCtrl.selectProfileImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -96,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: GestureDetector(
                         onTap: () {
                           if (!profileCtrl.isUploading) {
-                            profileCtrl.capturePhoto();
+                            _showImageSourceBottomSheet(context, profileCtrl);
                           }
                         },
                         child: Container(
@@ -118,74 +213,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // 3. User Name & Email info
-                Text(
-                  profileCtrl.name,
-                  style: GoogleFonts.outfit(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  profileCtrl.email,
-                  style: GoogleFonts.outfit(
-                    fontSize: 13,
-                    color: Colors.grey[500],
-                  ),
+                // 3. User Name with Edit Icon
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      profileCtrl.name,
+                      style: GoogleFonts.outfit(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () => _showEditNameDialog(context, profileCtrl),
+                      child: Icon(
+                        Icons.edit_outlined,
+                        size: 18,
+                        color: primaryBlue,
+                      ),
+                    ),
+                  ],
                 ),
                 if (profileCtrl.isUploading) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
-                    "Uploading to test server...",
+                    "Uploading profile picture...",
                     style: GoogleFonts.outfit(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       color: primaryBlue,
                     ),
                   ),
-                ] else if (profileCtrl.uploadedImageUrl != null) ...[
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF0FDF4),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFDCFCE7)),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.cloud_done_rounded, color: Color(0xFF15803D), size: 16),
-                            const SizedBox(width: 6),
-                            Text(
-                              "Uploaded Successfully!",
-                              style: GoogleFonts.outfit(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF15803D),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        SelectableText(
-                          profileCtrl.uploadedImageUrl!,
-                          style: GoogleFonts.outfit(
-                            fontSize: 10,
-                            color: const Color(0xFF166534),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
                 ] else if (profileCtrl.uploadError != null) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
@@ -306,7 +368,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const AIItineraryScreen(),
+                                      builder: (context) => const ItineraryDetailScreen(),
                                     ),
                                   );
                                 },

@@ -123,8 +123,8 @@ class _CrowdMapScreenState extends State<CrowdMapScreen> {
 
                       return Marker(
                         point: point,
-                        width: 60,
-                        height: 60,
+                        width: 120,
+                        height: 75,
                         child: GestureDetector(
                           onTap: () {
                             setState(() {
@@ -405,8 +405,14 @@ class _CrowdMapScreenState extends State<CrowdMapScreen> {
             ),
             child: Text(
               label,
-              style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 8,
+                fontWeight: FontWeight.bold,
+              ),
               maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
             ),
           ),
         ],

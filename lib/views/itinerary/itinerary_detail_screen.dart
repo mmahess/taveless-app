@@ -6,14 +6,14 @@ import '../../models/itinerary.dart';
 import '../../services/api_service.dart';
 import '../../models/destination.dart';
 
-class AIItineraryScreen extends StatefulWidget {
-  const AIItineraryScreen({super.key});
+class ItineraryDetailScreen extends StatefulWidget {
+  const ItineraryDetailScreen({super.key});
 
   @override
-  State<AIItineraryScreen> createState() => _AIItineraryScreenState();
+  State<ItineraryDetailScreen> createState() => _ItineraryDetailScreenState();
 }
 
-class _AIItineraryScreenState extends State<AIItineraryScreen> {
+class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
   int _selectedDayIndex = 0;
   String? _originalDestinationName;
   late Future<List<Destination>> _destinationsFuture;
@@ -152,8 +152,9 @@ class _AIItineraryScreenState extends State<AIItineraryScreen> {
                                   if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text("Plan saved"),
+                                      content: Text("Stop added and plan updated!"),
                                       backgroundColor: Color(0xFF22C55E),
+                                      duration: Duration(seconds: 1),
                                     ),
                                   );
                                 } catch (e) {
@@ -171,9 +172,10 @@ class _AIItineraryScreenState extends State<AIItineraryScreen> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
-                                      "Stop added locally! Click Save Changes",
+                                      "Stop added locally!",
                                     ),
                                     backgroundColor: Colors.blue,
+                                    duration: Duration(seconds: 1),
                                   ),
                                 );
                               }
@@ -840,13 +842,56 @@ class _AIItineraryScreenState extends State<AIItineraryScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    activity.title,
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF1E293B),
-                                    ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          activity.title,
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: const Color(0xFF1E293B),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.remove_circle_outline,
+                                          color: Colors.redAccent,
+                                          size: 20,
+                                        ),
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        onPressed: () async {
+                                          setState(() {
+                                            selectedDay.activities.removeAt(index);
+                                          });
+
+                                          try {
+                                            await itineraryCtrl.savePlan(itinerary);
+                                            if (!context.mounted) return;
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text("Stop removed and plan updated!"),
+                                                backgroundColor: Color(0xFF22C55E),
+                                                duration: Duration(seconds: 1),
+                                              ),
+                                            );
+                                          } catch (e) {
+                                            if (!context.mounted) return;
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text("Failed to sync change: $e"),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          }
+                                        },
+                                      ),
+                                    ],
                                   ),
                                   const SizedBox(height: 6),
                                   Row(
