@@ -392,21 +392,38 @@ class _LocalEventsScreenState extends State<LocalEventsScreen> {
             ],
           ),
           const SizedBox(height: 6),
-          // Metadata Row (Location, Date)
-          Row(
+          // Metadata Column (Location & Date below it)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.location_on, size: 12, color: Colors.grey),
-              const SizedBox(width: 4),
-              Text(
-                event.location,
-                style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey),
+              Row(
+                children: [
+                  const Icon(Icons.location_on, size: 12, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      event.location,
+                      style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              const Icon(Icons.calendar_month, size: 12, color: Colors.grey),
-              const SizedBox(width: 4),
-              Text(
-                event.date,
-                style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.calendar_month, size: 12, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      event.date,
+                      style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
