@@ -175,7 +175,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     }
 
-                    final destinations = snapshot.data!;
+                    final destinations = List<Destination>.from(snapshot.data!);
+                    // Sort destinations so that 'Small' crowd level is shown first, then 'Moderate', and finally 'High'
+                    destinations.sort((a, b) {
+                      final order = {'Small': 1, 'Moderate': 2, 'High': 3};
+                      final valA = order[a.crowdLevel] ?? 99;
+                      final valB = order[b.crowdLevel] ?? 99;
+                      return valA.compareTo(valB);
+                    });
                     final displayDestinations = destinations.take(5).toList();
                     return SizedBox(
                       height: 300,
