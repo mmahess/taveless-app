@@ -34,9 +34,12 @@ class AppLogo extends StatelessWidget {
               ),
             ],
           ),
-          padding: EdgeInsets.all(size * 0.15),
-          child: CustomPaint(
-            painter: LogoPainter(),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(size * 0.28),
+            child: Image.asset(
+              'assets/logo.jpg',
+              fit: BoxFit.cover,
+            ),
           ),
         ),
         if (showText) ...[
