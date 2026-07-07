@@ -283,26 +283,30 @@ class _LocalEventsScreenState extends State<LocalEventsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Chips
-                  Row(
-                    children: event.tags.map((tag) {
-                      return Container(
-                        margin: const EdgeInsets.only(right: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: tag == "Sports" ? const Color(0xFFD1FAE5) : const Color(0xFFDBEAFE),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          tag,
-                          style: GoogleFonts.outfit(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: tag == "Sports" ? const Color(0xFF065F46) : const Color(0xFF1E40AF),
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: event.tags.map((tag) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: tag == "Sports" ? const Color(0xFFD1FAE5) : const Color(0xFFDBEAFE),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                          child: Text(
+                            tag,
+                            style: GoogleFonts.outfit(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: tag == "Sports" ? const Color(0xFF065F46) : const Color(0xFF1E40AF),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   // Button
                   ElevatedButton(
                     onPressed: () {
@@ -433,34 +437,38 @@ class _LocalEventsScreenState extends State<LocalEventsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: event.tags.map((tag) {
-                  return Container(
-                    margin: const EdgeInsets.only(right: 6),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: tag == "Cultural"
-                          ? const Color(0xFFFEF3C7)
-                          : tag == "Ceremony"
-                              ? const Color(0xFFF3E8FF)
-                              : const Color(0xFFE0F2FE),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      tag,
-                      style: GoogleFonts.outfit(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
+              Expanded(
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: event.tags.map((tag) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
                         color: tag == "Cultural"
-                            ? const Color(0xFFB45309)
+                            ? const Color(0xFFFEF3C7)
                             : tag == "Ceremony"
-                                ? const Color(0xFF6B21A8)
-                                : const Color(0xFF0369A1),
+                                ? const Color(0xFFF3E8FF)
+                                : const Color(0xFFE0F2FE),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    ),
-                  );
-                }).toList(),
+                      child: Text(
+                        tag,
+                        style: GoogleFonts.outfit(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: tag == "Cultural"
+                              ? const Color(0xFFB45309)
+                              : tag == "Ceremony"
+                                  ? const Color(0xFF6B21A8)
+                                  : const Color(0xFF0369A1),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
+              const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
