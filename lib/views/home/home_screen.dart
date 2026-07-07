@@ -59,8 +59,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         radius: 20,
                         backgroundColor: Colors.grey[200],
                         backgroundImage: profileCtrl.profileImage != null
-                            ? FileImage(File(profileCtrl.profileImage!.path)) as ImageProvider
-                            : const NetworkImage("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"),
+                            ? FileImage(File(profileCtrl.profileImage!.path))
+                            : null,
+                        child: profileCtrl.profileImage == null
+                            ? Icon(
+                                Icons.person_rounded,
+                                size: 20,
+                                color: Colors.grey[400],
+                              )
+                            : null,
                       ),
                     ),
                   ],
