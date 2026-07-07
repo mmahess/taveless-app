@@ -22,7 +22,6 @@ class _CrowdMapScreenState extends State<CrowdMapScreen> {
   // Selected destination from the map — stores the full Destination object
   Destination? _selectedDestination;
   bool _showLabels = false;
-  String _searchQuery = "";
 
   late Future<List<Destination>> _destinationsFuture;
 
@@ -101,24 +100,19 @@ class _CrowdMapScreenState extends State<CrowdMapScreen> {
                     }
 
                     final list = snapshot.data!;
-                    final filteredList = list.where((dest) {
-                      final nameMatch = dest.name.toLowerCase().contains(_searchQuery.toLowerCase());
-                      final locationMatch = dest.location.toLowerCase().contains(_searchQuery.toLowerCase());
-                      return nameMatch || locationMatch;
-                    }).toList();
 
                     // Auto-select the first destination if none is selected yet
-                    if (_selectedDestination == null && filteredList.isNotEmpty) {
+                    if (_selectedDestination == null && list.isNotEmpty) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (mounted && _selectedDestination == null) {
                           setState(() {
-                            _selectedDestination = filteredList.first;
+                            _selectedDestination = list.first;
                           });
                         }
                       });
                     }
 
-                    final markers = filteredList.map((dest) {
+                    final markers = list.map((dest) {
                       final point = LatLng(dest.latitude, dest.longitude);
 
                       Color crowdColor = dest.crowdLevel == "Small"
@@ -150,81 +144,46 @@ class _CrowdMapScreenState extends State<CrowdMapScreen> {
             ),
           ),
 
-          // 2. Floating Header Bar (Page Title & Search Input)
+          // 2. Floating Header Bar (Page Title)
           Positioned(
             top: 60,
             left: 20,
             right: 20,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        itineraryCtrl.setActiveTab(0); // Return to Home screen
-                      },
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                GestureDetector(
+                  onTap: () {
+                    itineraryCtrl.setActiveTab(0); // Return to Home screen
+                  },
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
-                        child: const Center(
-                          child: Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
-                        ),
-                      ),
+                      ],
                     ),
-                    Text(
-                      "Crowd Map",
-                      style: GoogleFonts.outfit(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1E293B),
-                      ),
+                    child: const Center(
+                      child: Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
                     ),
-                    const SizedBox(width: 44),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.95),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                  child: TextField(
-                    onChanged: (val) {
-                      setState(() {
-                        _searchQuery = val;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      icon: const Icon(Icons.search, color: Color(0xFF0560E8), size: 20),
-                      hintText: "Search spots on map...",
-                      hintStyle: GoogleFonts.outfit(color: Colors.grey[400], fontSize: 14),
-                      border: InputBorder.none,
-                      isDense: true,
-                    ),
-                    style: GoogleFonts.outfit(fontSize: 14),
                   ),
                 ),
+                Text(
+                  "Crowd Map",
+                  style: GoogleFonts.outfit(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1E293B),
+                  ),
+                ),
+                const SizedBox(width: 44),
               ],
             ),
           ),
