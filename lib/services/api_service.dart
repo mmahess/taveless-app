@@ -97,30 +97,29 @@ class ApiService {
     }
   }
 
-  // 5. Upload profile picture to a public test upload API
+  // 5. Upload profile picture to Supabase Storage 'avatars' bucket
   Future<String> uploadImage(File file) async {
-    final uri = Uri.parse('https://api.escuelajs.co/api/v1/files/upload');
-    final request = http.MultipartRequest('POST', uri);
-    
-    // Add file to the multipart request
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        'file',
-        file.path,
-      ),
+    final projectUrl = baseUrl.replaceAll('/rest/v1', '');
+    final fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final url = '$projectUrl/storage/v1/object/avatars/$fileName';
+
+    final bytes = await file.readAsBytes();
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'apikey': anonKey,
+        'Authorization': 'Bearer $anonKey',
+        'Content-Type': 'image/jpeg',
+      },
+      body: bytes,
     );
 
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      if (data.containsKey('location')) {
-        return data['location'] as String;
-      }
-      throw Exception('Upload succeeded but location not returned in response.');
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      // Return the public URL for the avatars bucket
+      return '$projectUrl/storage/v1/object/public/avatars/$fileName';
     } else {
-      throw Exception('Failed to upload image. Server returned: ${response.statusCode} - ${response.body}');
+      throw Exception('Upload failed: ${response.statusCode} - ${response.body}');
     }
   }
 }
