@@ -5,6 +5,7 @@ import '../../controllers/itinerary_controller.dart';
 import '../../models/itinerary.dart';
 import '../../services/api_service.dart';
 import '../../models/destination.dart';
+import '../map/spot_detail_screen.dart';
 
 class ItineraryDetailScreen extends StatefulWidget {
   const ItineraryDetailScreen({super.key});
@@ -892,129 +893,169 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
                             ],
                           ),
                           const SizedBox(width: 16),
-
-                          // Activity Card Info
                           Expanded(
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 24),
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: Colors.grey.withOpacity(0.15),
+                            child: GestureDetector(
+                              onTap: () async {
+                                try {
+                                  final destinations = await _destinationsFuture;
+                                  final match = destinations.firstWhere(
+                                    (d) => d.name.toLowerCase() == activity.title.toLowerCase(),
+                                  );
+
+                                  if (!context.mounted) return;
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => SpotDetailScreen(
+                                        name: match.name,
+                                        crowdLevel: match.crowdLevel,
+                                        address: match.location,
+                                        description: match.description,
+                                        imageUrl: match.imageUrl,
+                                        rating: match.rating,
+                                      ),
+                                    ),
+                                  );
+                                } catch (e) {
+                                  if (!context.mounted) return;
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => SpotDetailScreen(
+                                        name: activity.title,
+                                        crowdLevel: activity.crowdLevel,
+                                        address: activity.location,
+                                        description: activity.description.isNotEmpty
+                                            ? activity.description
+                                            : "No description available.",
+                                        imageUrl: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=500",
+                                        rating: 4.5,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 24),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.grey.withOpacity(0.15),
+                                  ),
                                 ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          activity.title,
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: const Color(0xFF1E293B),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            activity.title,
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: const Color(0xFF1E293B),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.remove_circle_outline,
-                                          color: Colors.redAccent,
-                                          size: 20,
-                                        ),
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        onPressed: () async {
-                                          setState(() {
-                                            selectedDay.activities.removeAt(index);
-                                          });
+                                        const SizedBox(width: 8),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.remove_circle_outline,
+                                            color: Colors.redAccent,
+                                            size: 20,
+                                          ),
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                          onPressed: () async {
+                                            setState(() {
+                                              selectedDay.activities.removeAt(index);
+                                            });
 
-                                          try {
-                                            await itineraryCtrl.savePlan(itinerary);
-                                            if (!context.mounted) return;
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(
-                                                content: Text("Stop removed and plan updated!"),
-                                                backgroundColor: Color(0xFF22C55E),
-                                                duration: Duration(seconds: 1),
-                                              ),
-                                            );
-                                          } catch (e) {
-                                            if (!context.mounted) return;
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text("Failed to sync change: $e"),
-                                                backgroundColor: Colors.red,
-                                              ),
-                                            );
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.location_on,
-                                        size: 14,
-                                        color: Colors.grey,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Expanded(
-                                        child: Text(
-                                          activity.location,
+                                            try {
+                                              await itineraryCtrl.savePlan(itinerary);
+                                              if (!context.mounted) return;
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text("Stop removed and plan updated!"),
+                                                  backgroundColor: Color(0xFF22C55E),
+                                                  duration: Duration(seconds: 1),
+                                                ),
+                                              );
+                                            } catch (e) {
+                                              if (!context.mounted) return;
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text("Failed to sync change: $e"),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.location_on,
+                                          size: 14,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            activity.location,
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 12,
+                                              color: Colors.grey[500],
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Row(
+                                      children: [
+                                        // Crowd tag dot & text
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: BoxDecoration(
+                                            color: activity.crowdLevel == "Small"
+                                                ? const Color(0xFF22C55E)
+                                                : activity.crowdLevel ==
+                                                      "Moderate"
+                                                ? const Color(0xFFF59E0B)
+                                                : const Color(0xFFEF4444),
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          "${activity.crowdLevel} Crowds",
                                           style: GoogleFonts.outfit(
                                             fontSize: 12,
-                                            color: Colors.grey[500],
+                                            fontWeight: FontWeight.w600,
+                                            color: activity.crowdLevel == "Small"
+                                                ? const Color(0xFF22C55E)
+                                                : activity.crowdLevel ==
+                                                      "Moderate"
+                                                ? const Color(0xFFF59E0B)
+                                                : const Color(0xFFEF4444),
                                           ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Row(
-                                    children: [
-                                      // Crowd tag dot & text
-                                      Container(
-                                        width: 8,
-                                        height: 8,
-                                        decoration: BoxDecoration(
-                                          color: activity.crowdLevel == "Small"
-                                              ? const Color(0xFF22C55E)
-                                              : activity.crowdLevel ==
-                                                    "Moderate"
-                                              ? const Color(0xFFF59E0B)
-                                              : const Color(0xFFEF4444),
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        "${activity.crowdLevel} Crowds",
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: activity.crowdLevel == "Small"
-                                              ? const Color(0xFF22C55E)
-                                              : activity.crowdLevel ==
-                                                    "Moderate"
-                                              ? const Color(0xFFF59E0B)
-                                              : const Color(0xFFEF4444),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
