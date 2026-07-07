@@ -75,12 +75,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             )
                           : null,
                     ),
+                    if (profileCtrl.isUploading)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.4),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 3,
+                            ),
+                          ),
+                        ),
+                      ),
                     Positioned(
                       bottom: 0,
                       right: 4,
                       child: GestureDetector(
                         onTap: () {
-                          profileCtrl.capturePhoto();
+                          if (!profileCtrl.isUploading) {
+                            profileCtrl.capturePhoto();
+                          }
                         },
                         child: Container(
                           padding: const EdgeInsets.all(8),
@@ -118,6 +135,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: Colors.grey[500],
                   ),
                 ),
+                if (profileCtrl.isUploading) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    "Uploading to test server...",
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: primaryBlue,
+                    ),
+                  ),
+                ] else if (profileCtrl.uploadedImageUrl != null) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFDCFCE7)),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.cloud_done_rounded, color: Color(0xFF15803D), size: 16),
+                            const SizedBox(width: 6),
+                            Text(
+                              "Uploaded Successfully!",
+                              style: GoogleFonts.outfit(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF15803D),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        SelectableText(
+                          profileCtrl.uploadedImageUrl!,
+                          style: GoogleFonts.outfit(
+                            fontSize: 10,
+                            color: const Color(0xFF166534),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else if (profileCtrl.uploadError != null) ...[
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      "Upload failed: ${profileCtrl.uploadError}",
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        color: Colors.redAccent,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 32),
 
                 // 4. My Saved Plans Section (Integrated with Supabase)

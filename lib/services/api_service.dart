@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/destination.dart';
 import '../models/local_event.dart';
@@ -93,6 +94,33 @@ class ApiService {
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Failed to delete itinerary: ${response.body}');
+    }
+  }
+
+  // 5. Upload profile picture to a public test upload API
+  Future<String> uploadImage(File file) async {
+    final uri = Uri.parse('https://api.escuelajs.co/api/v1/files/upload');
+    final request = http.MultipartRequest('POST', uri);
+    
+    // Add file to the multipart request
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        file.path,
+      ),
+    );
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      if (data.containsKey('location')) {
+        return data['location'] as String;
+      }
+      throw Exception('Upload succeeded but location not returned in response.');
+    } else {
+      throw Exception('Failed to upload image. Server returned: ${response.statusCode} - ${response.body}');
     }
   }
 }
