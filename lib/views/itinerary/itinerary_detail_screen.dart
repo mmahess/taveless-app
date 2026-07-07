@@ -32,6 +32,7 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
   ) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
@@ -39,154 +40,219 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
         ),
       ),
       builder: (context) {
-        return FutureBuilder<List<Destination>>(
-          future: _destinationsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const SizedBox(
-                height: 250,
-                child: Center(child: CircularProgressIndicator(strokeWidth: 3)),
-              );
-            }
-            if (snapshot.hasError ||
-                !snapshot.hasData ||
-                snapshot.data!.isEmpty) {
-              return SizedBox(
-                height: 200,
-                child: Center(
-                  child: Text(
-                    "Error loading destinations from Supabase",
-                    style: GoogleFonts.outfit(color: Colors.red),
-                  ),
-                ),
-              );
-            }
-
-            final liveSpots = snapshot.data!;
-
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Add Stop to Day ${day.dayNumber}",
-                    style: GoogleFonts.outfit(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1E293B),
+        String searchQuery = "";
+        return StatefulBuilder(
+          builder: (context, setBottomSheetState) {
+            return FutureBuilder<List<Destination>>(
+              future: _destinationsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox(
+                    height: 250,
+                    child: Center(child: CircularProgressIndicator(strokeWidth: 3)),
+                  );
+                }
+                if (snapshot.hasError ||
+                    !snapshot.hasData ||
+                    snapshot.data!.isEmpty) {
+                  return SizedBox(
+                    height: 200,
+                    child: Center(
+                      child: Text(
+                        "Error loading destinations from Supabase",
+                        style: GoogleFonts.outfit(color: Colors.red),
+                      ),
                     ),
+                  );
+                }
+
+                final liveSpots = snapshot.data!;
+
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "Select a spot from your live destinations table:",
-                    style: GoogleFonts.outfit(
-                      fontSize: 13,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                  const Divider(height: 28),
-                  Flexible(
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: liveSpots.length,
-                      itemBuilder: (context, index) {
-                        final spot = liveSpots[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Add Stop to Day ${day.dayNumber}",
+                          style: GoogleFonts.outfit(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF1E293B),
                           ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 2,
-                            ),
-                            leading: const Icon(
-                              Icons.place,
-                              color: Color(0xFF0560E8),
-                            ),
-                            title: Text(
-                              spot.name,
-                              style: GoogleFonts.outfit(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF1E293B),
-                              ),
-                            ),
-                            subtitle: Text(
-                              "${spot.location} • ${spot.crowdLevel} Crowd",
-                              style: GoogleFonts.outfit(fontSize: 12),
-                            ),
-                            onTap: () async {
-                              Navigator.pop(context);
-
-                              final newActivity = ItineraryActivity(
-                                id: "custom_${DateTime.now().millisecondsSinceEpoch}",
-                                title: spot.name,
-                                location: spot.location,
-                                time: "11:00 AM",
-                                crowdLevel: spot.crowdLevel,
-                                description: spot.description,
-                                cost: 5.0,
-                              );
-
-                              setState(() {
-                                day.activities.add(newActivity);
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Select a spot from your live destinations table:",
+                          style: GoogleFonts.outfit(
+                            fontSize: 13,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        // Search Bar
+                        Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                          child: TextField(
+                            onChanged: (val) {
+                              setBottomSheetState(() {
+                                searchQuery = val;
                               });
+                            },
+                            decoration: InputDecoration(
+                              icon: const Icon(Icons.search, color: Colors.grey, size: 20),
+                              hintText: "Search spots (e.g. Pantai, Temple)...",
+                              hintStyle: GoogleFonts.outfit(color: Colors.grey[400], fontSize: 14),
+                              border: InputBorder.none,
+                              isDense: true,
+                            ),
+                            style: GoogleFonts.outfit(fontSize: 14),
+                          ),
+                        ),
+                        const Divider(height: 28),
+                        
+                        Flexible(
+                          child: Builder(
+                            builder: (context) {
+                              final filteredSpots = liveSpots.where((spot) =>
+                                spot.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
+                                spot.location.toLowerCase().contains(searchQuery.toLowerCase())
+                              ).toList();
 
-                              // Check if this plan is already saved in Supabase
-                              final isAlreadySaved = itineraryCtrl.savedPlans
-                                  .any(
-                                    (p) =>
-                                        p.destinationName ==
-                                            itinerary.destinationName &&
-                                        p.dateRange == itinerary.dateRange,
-                                  );
-
-                              if (isAlreadySaved) {
-                                try {
-                                  await itineraryCtrl.savePlan(itinerary);
-                                  if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("Stop added and plan updated!"),
-                                      backgroundColor: Color(0xFF22C55E),
-                                      duration: Duration(seconds: 1),
+                              if (filteredSpots.isEmpty) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.search_off_rounded, color: Colors.grey[400], size: 40),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          "No destinations found",
+                                          style: GoogleFonts.outfit(color: Colors.grey[500], fontSize: 14),
+                                        ),
+                                      ],
                                     ),
-                                  );
-                                } catch (e) {
-                                  if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        "Failed to sync change: $e",
-                                      ),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      "Stop added locally!",
-                                    ),
-                                    backgroundColor: Colors.blue,
-                                    duration: Duration(seconds: 1),
                                   ),
                                 );
                               }
+
+                              return ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: filteredSpots.length,
+                                itemBuilder: (context, index) {
+                                  final spot = filteredSpots[index];
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 10),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF8FAFC),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: ListTile(
+                                      contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 2,
+                                      ),
+                                      leading: const Icon(
+                                        Icons.place,
+                                        color: Color(0xFF0560E8),
+                                      ),
+                                      title: Text(
+                                        spot.name,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: const Color(0xFF1E293B),
+                                        ),
+                                      ),
+                                      subtitle: Text(
+                                        "${spot.location} • ${spot.crowdLevel} Crowd",
+                                        style: GoogleFonts.outfit(fontSize: 12),
+                                      ),
+                                      onTap: () async {
+                                        Navigator.pop(context);
+
+                                        final newActivity = ItineraryActivity(
+                                          id: "custom_${DateTime.now().millisecondsSinceEpoch}",
+                                          title: spot.name,
+                                          location: spot.location,
+                                          time: "11:00 AM",
+                                          crowdLevel: spot.crowdLevel,
+                                          description: spot.description,
+                                          cost: 5.0,
+                                        );
+
+                                        setState(() {
+                                          day.activities.add(newActivity);
+                                        });
+
+                                        // Check if this plan is already saved in Supabase
+                                        final isAlreadySaved = itineraryCtrl.savedPlans
+                                            .any(
+                                              (p) =>
+                                                  p.destinationName ==
+                                                      itinerary.destinationName &&
+                                                  p.dateRange == itinerary.dateRange,
+                                            );
+
+                                        if (isAlreadySaved) {
+                                          try {
+                                            await itineraryCtrl.savePlan(itinerary);
+                                            if (!context.mounted) return;
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text("Stop added and plan updated!"),
+                                                backgroundColor: Color(0xFF22C55E),
+                                                duration: Duration(seconds: 1),
+                                              ),
+                                            );
+                                          } catch (e) {
+                                            if (!context.mounted) return;
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  "Failed to sync change: $e",
+                                                ),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          }
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                "Stop added locally!",
+                                              ),
+                                              backgroundColor: Colors.blue,
+                                              duration: Duration(seconds: 1),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  );
+                                },
+                              );
                             },
                           ),
-                        );
-                      },
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                );
+              },
             );
           },
         );
