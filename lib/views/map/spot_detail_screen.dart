@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../../controllers/itinerary_controller.dart';
+import '../../models/itinerary.dart';
 
 class SpotDetailScreen extends StatelessWidget {
   final String name;
@@ -188,6 +191,32 @@ class SpotDetailScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 20),
+                        // Add to Itinerary Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              _showAddToItineraryBottomSheet(context);
+                            },
+                            icon: const Icon(Icons.add_location_alt_outlined, color: Colors.white),
+                            label: Text(
+                              "Add to My Itinerary",
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0560E8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 0,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -224,6 +253,226 @@ class SpotDetailScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showAddToItineraryBottomSheet(BuildContext context) {
+    final itineraryCtrl = Provider.of<ItineraryController>(context, listen: false);
+    final savedPlans = itineraryCtrl.savedPlans;
+
+    if (savedPlans.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text("No Itineraries Found", style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+          content: Text(
+            "You haven't created any trip itineraries yet. Go to the Create tab to start your first trip!",
+            style: GoogleFonts.outfit(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("OK", style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      builder: (context) {
+        int selectedPlanIndex = 0;
+        int selectedDayIndex = 0;
+
+        return StatefulBuilder(
+          builder: (context, setBottomSheetState) {
+            final activePlan = savedPlans[selectedPlanIndex];
+
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Add to Trip Itinerary",
+                    style: GoogleFonts.outfit(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Select which trip and day to add '$name':",
+                    style: GoogleFonts.outfit(fontSize: 13, color: Colors.grey[500]),
+                  ),
+                  const Divider(height: 24),
+
+                  // Dropdown selector for Itinerary
+                  Text(
+                    "Select Trip",
+                    style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B)),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: selectedPlanIndex,
+                        isExpanded: true,
+                        items: List.generate(savedPlans.length, (index) {
+                          final plan = savedPlans[index];
+                          return DropdownMenuItem<int>(
+                            value: index,
+                            child: Text(
+                              "${plan.destinationName} (${plan.dateRange})",
+                              style: GoogleFonts.outfit(fontSize: 14),
+                            ),
+                          );
+                        }),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setBottomSheetState(() {
+                              selectedPlanIndex = val;
+                              selectedDayIndex = 0; // Reset selected day for new plan
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Day selector
+                  Text(
+                    "Select Day",
+                    style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B)),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 44,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: activePlan.days.length,
+                      itemBuilder: (context, index) {
+                        final isSelected = selectedDayIndex == index;
+                        return GestureDetector(
+                          onTap: () {
+                            setBottomSheetState(() {
+                              selectedDayIndex = index;
+                            });
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: isSelected ? const Color(0xFF0560E8) : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                            child: Center(
+                              child: Text(
+                                "Day ${index + 1}",
+                                style: GoogleFonts.outfit(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+
+                  // Add Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(context); // Close bottom sheet
+
+                        final targetPlan = savedPlans[selectedPlanIndex];
+                        final targetDay = targetPlan.days[selectedDayIndex];
+
+                        final newActivity = ItineraryActivity(
+                          id: "custom_${DateTime.now().millisecondsSinceEpoch}",
+                          title: name,
+                          location: address,
+                          time: "12:00 PM",
+                          crowdLevel: crowdLevel,
+                          description: description,
+                          cost: 5.0,
+                        );
+
+                        targetDay.activities.add(newActivity);
+
+                        try {
+                          // Show loading overlay
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => const Center(child: CircularProgressIndicator()),
+                          );
+
+                          await itineraryCtrl.savePlan(targetPlan);
+
+                          if (!context.mounted) return;
+                          Navigator.pop(context); // Close loading overlay
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Added '$name' to Day ${selectedDayIndex + 1} of ${targetPlan.destinationName}!"),
+                              backgroundColor: const Color(0xFF22C55E),
+                            ),
+                          );
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          Navigator.pop(context); // Close loading overlay
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Failed to save changes: $e"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0560E8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: Text(
+                        "Confirm Add",
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
