@@ -9,7 +9,7 @@ import '../components/app_logo.dart';
 import '../components/shimmer_loading.dart';
 import '../../controllers/itinerary_controller.dart';
 import '../itinerary/itinerary_detail_screen.dart';
-import 'package:latlong2/latlong.dart';
+import '../map/spot_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -341,12 +341,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return GestureDetector(
       onTap: () {
-        final coordinates = LatLng(destination.latitude, destination.longitude);
-        const double zoom = 13.0;
-
-        final itineraryCtrl = Provider.of<ItineraryController>(context, listen: false);
-        itineraryCtrl.setMapFocus(coordinates, zoom);
-        itineraryCtrl.setActiveTab(1); // Switch to Crowd Map Tab
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SpotDetailScreen(
+              name: destination.name,
+              crowdLevel: destination.crowdLevel,
+              address: destination.location,
+              description: destination.description,
+              imageUrl: destination.imageUrl,
+              rating: destination.rating,
+            ),
+          ),
+        );
       },
       child: Container(
         width: 230,
